@@ -1,32 +1,30 @@
-import React from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Container, Row, Col, Spinner, Button } from "react-bootstrap";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CourseCard from "../components/CourseCard";
-
-const courses = [
-  {
-    id: 1,
-    image: require("../assets/8c9e6fbe4978be3387d7b68741986339.jpeg"),
-    title: "Big 4 Auditor Financial Analyst",
-    description: "Mulai transformasi dengan instruktur profesional, harga yang terjangkau, dan...",
-    instructor: { name: "Jenna Ortega", role: "Senior Accountant di Gojek" },
-    rating: { value: 3.5, count: 86 },
-    price: "Rp 300K",
-  },
-  {
-    id: 2,
-    image: require("../assets/8c9e6fbe4978be3387d7b68741986339.jpeg"),
-    title: "Data Analyst untuk Pemula",
-    description: "Pelajari dasar-dasar analisis data menggunakan Excel dan SQL...",
-    instructor: { name: "Dita Aulia", role: "Data Analyst di Tokopedia" },
-    rating: { value: 4.2, count: 102 },
-    price: "Rp 250K",
-  },
-  // Tambah data course sesuai kebutuhan
-];
+import { getCourses } from "../services/api/api";
 
 function Home() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      try {
+        const data = await getCourses();
+        setCourses(data);
+      } catch (e) {
+        alert("Gagal mengambil data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
   return (
     <>
       <Header showCategory />
@@ -62,39 +60,33 @@ function Home() {
 
       <section className="cards py-4">
         <Container>
-          <Row>
-            {courses.map((course) => (
-              <Col md={4} key={course.id}>
-                <CourseCard course={course} />
-              </Col>
-            ))}
-          </Row>
+          {loading ? (
+            <div className="text-center"><Spinner animation="border" /></div>
+          ) : courses.length > 0 ? (
+            <Row>
+              {courses.map((course) => (
+                <Col md={4} key={course.id}>
+                  <CourseCard
+                    course={{
+                      image: course.photos,
+                      title: course.tite,
+                      description: course.description,
+                      price: course.price,
+                      instructor: {
+                        name: course.mentor,
+                        role: course.rolementor,
+                        avatar: course.avatar
+                      }
+                    }}
+                  />
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <p className="text-center">Tidak ada data course.</p>
+          )}
         </Container>
       </section>
-
-      <section className="newsletter-section bg-light py-5 text-center">
-        <Container>
-          <p className="text-uppercase text-muted mb-2">NEWSLETTER</p>
-          <h2>Mau Belajar Lebih Banyak?</h2>
-          <p className="mb-4">
-            Daftarkan dirimu untuk mendapatkan informasi terbaru dan <br />
-            penawaran spesial dari program-program terbaik hariesok.id
-          </p>
-          <form className="d-flex justify-content-center align-items-center gap-2 flex-wrap" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Masukkan Emailmu"
-              required
-              className="form-control"
-              style={{ maxWidth: 320 }}
-            />
-            <Button type="submit" variant="success" style={{ minWidth: 120 }}>
-              Subscribe
-            </Button>
-          </form>
-        </Container>
-      </section>
-
       <Footer />
     </>
   );
